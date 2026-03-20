@@ -2,27 +2,30 @@ import React, { useMemo, useState } from 'react';
 
 import './App.css';
 import data from './data/backup.json';
+import { FolderSection } from './components/folders/FolderSection';
+import { ImportButton } from './components/ImportButton';
 import {
-    TASK_STATUSES,
     createTask,
     deleteTaskById,
-    sortTasksByDueDate,
     updateTaskStatus,
     updateTaskTitle,
 } from './components/task/tasks';
 import { createFolder, groupTasksByFolder, updateFolderTitle } from './components/folders/folders';
 
 function App() {
+    // State
     const [tasks, setTasks] = useState(data.tasks.map(createTask));
     const [folders, setFolders] = useState(data.folders);
+    const [relations, setRelations] = useState(data.task_folder_relations);
     const [editingTaskId, setEditingTaskId] = useState(null);
     const [editingFolderId, setEditingFolderId] = useState(null);
     const [draftTitle, setDraftTitle] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Compute
     const groupedFolders = useMemo(
         () => {
-            const grouped = groupTasksByFolder(tasks, folders, data.task_folder_relations, createTask, createFolder);
+            const grouped = groupTasksByFolder(tasks, folders, relations, createTask, createFolder);
 
             if (!searchQuery.trim()) {
                 return grouped;
@@ -38,43 +41,64 @@ function App() {
                 }))
                 .filter((folder) => folder.tasks.length > 0);
         },
-        [tasks, folders, searchQuery]
+        [tasks, folders, relations, searchQuery]
     );
 
-    const deleteTask = (taskId) => {
-        setTasks((currentTasks) => deleteTaskById(currentTasks, taskId));
-        if (editingTaskId === taskId) {
-            setEditingTaskId(null);
-            setDraftTitle('');
-        }
+    // Handlers - Task
+    const resetEditing = () => {
+        setEditingTaskId(null);
+        setEditingFolderId(null);
+        setDraftTitle('');
     };
 
-    const startEditingTask = (task) => {
+    const handleDeleteTask = (taskId) => {
+        setTasks((currentTasks) => deleteTaskById(currentTasks, taskId));
+        if (editingTaskId === taskId) resetEditing();
+    };
+
+    const handleStartEditingTask = (task) => {
         setEditingTaskId(task.id);
         setEditingFolderId(null);
         setDraftTitle(task.title);
     };
 
-    const startEditingFolder = (folder) => {
+    const handleSaveTaskTitle = (taskId) => {
+        setTasks((currentTasks) => updateTaskTitle(currentTasks, taskId, draftTitle));
+        resetEditing();
+    };
+
+    const handleStatusChange = (taskId, nextStatus) => {
+        setTasks((currentTasks) => updateTaskStatus(currentTasks, taskId, nextStatus));
+    };
+
+    // Handlers - Folder
+    const handleStartEditingFolder = (folder) => {
         setEditingFolderId(folder.id);
         setEditingTaskId(null);
         setDraftTitle(folder.title);
     };
 
-    const saveTaskTitle = (taskId) => {
-        setTasks((currentTasks) => updateTaskTitle(currentTasks, taskId, draftTitle));
-        setEditingTaskId(null);
-        setDraftTitle('');
-    };
-
-    const saveTaskStatus = (taskId, nextStatus) => {
-        setTasks((currentTasks) => updateTaskStatus(currentTasks, taskId, nextStatus));
-    };
-
-    const saveFolderTitle = (folderId) => {
+    const handleSaveFolderTitle = (folderId) => {
         setFolders((currentFolders) => updateFolderTitle(currentFolders, folderId, draftTitle));
-        setEditingFolderId(null);
-        setDraftTitle('');
+        resetEditing();
+    };
+
+    // Handlers - Import
+    const handleImportJSON = (importedData) => {
+        try {
+            if (!importedData.tasks || !importedData.folders || !importedData.task_folder_relations) {
+                alert('Format JSON invalide. Vérifiez que vous avez: tasks, folders, task_folder_relations');
+                return;
+            }
+
+            setTasks(importedData.tasks.map(createTask));
+            setFolders(importedData.folders);
+            setRelations(importedData.task_folder_relations);
+            resetEditing();
+            alert('✅ Données importées avec succès !');
+        } catch (error) {
+            alert(`❌ Erreur lors de l'import : ${error.message}`);
+        }
     };
 
     return (
@@ -83,91 +107,33 @@ function App() {
                 <h1>Ma to-do list</h1>
                 <p className="subtitle">version 1</p>
 
-                <input
-                    type="text"
-                    placeholder="Rechercher une tâche..."
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    className="search-input"
-                />
+                <div className="controls-bar">
+                    <input
+                        type="text"
+                        placeholder="Rechercher une tâche..."
+                        value={searchQuery}
+                        onChange={(event) => setSearchQuery(event.target.value)}
+                        className="search-input"
+                    />
+                    <ImportButton onImport={handleImportJSON} />
+                </div>
 
-                {groupedFolders.map((folder) => {
-                    const isEditingFolder = editingFolderId === folder.id;
-
-                    return (
-                        <section key={folder.id} className="folder-card">
-                            <h2>
-                                {isEditingFolder ? (
-                                    <input
-                                        type="text"
-                                        value={draftTitle}
-                                        onChange={(event) => setDraftTitle(event.target.value)}
-                                    />
-                                ) : (
-                                    folder.title
-                                )}
-                            </h2>
-
-                            {isEditingFolder ? (
-                                <button type="button" onClick={() => saveFolderTitle(folder.id)}>
-                                    Enregistrer le dossier
-                                </button>
-                            ) : (
-                                <button type="button" onClick={() => startEditingFolder(folder)}>
-                                    Modifier le dossier
-                                </button>
-                            )}
-
-                            <ul className="task-list">
-                                {sortTasksByDueDate(folder.tasks).map((task) => {
-                                    const isEditingTask = editingTaskId === task.id;
-
-                                    return (
-                                        <li key={task.id} className="task-item">
-                                            <div>
-                                                <strong>
-                                                    {isEditingTask ? (
-                                                        <input
-                                                            type="text"
-                                                            value={draftTitle}
-                                                            onChange={(event) => setDraftTitle(event.target.value)}
-                                                        />
-                                                    ) : (
-                                                        task.title
-                                                    )}
-                                                </strong>
-                                                <div className="task-meta">Statut : <select
-                                                    value={task.status}
-                                                    onChange={(event) => saveTaskStatus(task.id, event.target.value)}
-                                                >
-                                                    {TASK_STATUSES.map((status) => (
-                                                        <option key={status} value={status}>
-                                                            {status}
-                                                        </option>
-                                                    ))}
-                                                </select></div>
-                                                <div className="task-meta">Échéance : {task.dueAt}</div>
-
-                                                <button type="button" onClick={() => deleteTask(task.id)}>
-                                                    Supprimer
-                                                </button>
-                                                {isEditingTask ? (
-                                                    <button type="button" onClick={() => saveTaskTitle(task.id)}>
-                                                        Enregistrer
-                                                    </button>
-                                                ) : (
-                                                    <button type="button" onClick={() => startEditingTask(task)}>
-                                                        Modifier
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        </section>
-                    );
-                })}
+                {groupedFolders.map((folder) => (
+                    <FolderSection
+                        key={folder.id}
+                        folder={folder}
+                        editingTaskId={editingTaskId}
+                        editingFolderId={editingFolderId}
+                        draftTitle={draftTitle}
+                        onDraftChange={(event) => setDraftTitle(event.target.value)}
+                        onStartEditTask={handleStartEditingTask}
+                        onStartEditFolder={handleStartEditingFolder}
+                        onSaveEditTask={() => handleSaveTaskTitle(editingTaskId)}
+                        onSaveEditFolder={() => handleSaveFolderTitle(editingFolderId)}
+                        onDeleteTask={handleDeleteTask}
+                        onStatusChange={handleStatusChange}
+                    />
+                ))}
             </main>
         </div>
     );
