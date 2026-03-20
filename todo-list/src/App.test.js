@@ -1,9 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+test('renders the todo app', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
-});
 
+  expect(screen.getByText(/ma to-do list/i)).toBeInTheDocument();
+  expect(screen.getByText(/modifier le dossier/i)).toBeInTheDocument();
+  expect(screen.getByText(/supprimer/i)).toBeInTheDocument();
+});

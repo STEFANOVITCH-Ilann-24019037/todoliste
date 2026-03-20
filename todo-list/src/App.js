@@ -2,51 +2,15 @@ import React, { useMemo, useState } from 'react';
 
 import './App.css';
 import data from './data/backup.json';
-
-const TASK_STATUSES = ['Abandonné', 'En attente', 'Nouveau', 'Réussi'];
-
-function createTask(task) {
-    return {
-        id: task.id,
-        title: task.title,
-        description: task.description,
-        createdAt: task.date_creation,
-        dueAt: task.date_echeance,
-        status: task.etat,
-        teammates: task.equipiers ?? [],
-    };
-}
-
-function createFolder(folder) {
-    return {
-        id: folder.id,
-        title: folder.title,
-        description: folder.description,
-        color: folder.color,
-        icon: folder.icon,
-        tasks: [],
-    };
-}
-
-function groupTasksByFolder(tasks, folders, relations) {
-    const folderMap = new Map(folders.map((folder) => [folder.id, { ...createFolder(folder), tasks: [] }]));
-    const taskMap = new Map(tasks.map((task) => [task.id, createTask(task)]));
-
-    relations.forEach(({ task_id, folder_id }) => {
-        const folder = folderMap.get(folder_id);
-        const task = taskMap.get(task_id);
-
-        if (folder && task) {
-            folder.tasks.push(task);
-        }
-    });
-
-    return Array.from(folderMap.values()).filter((folder) => folder.tasks.length > 0);
-}
-
-function sortByDueDate(tasks) {
-    return [...tasks].sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
-}
+import {
+    TASK_STATUSES,
+    createTask,
+    deleteTaskById,
+    sortTasksByDueDate,
+    updateTaskStatus,
+    updateTaskTitle,
+} from './components/task/tasks';
+import { createFolder, groupTasksByFolder, updateFolderTitle } from './components/folders/folders';
 
 function App() {
     const [tasks, setTasks] = useState(data.tasks.map(createTask));
@@ -54,14 +18,31 @@ function App() {
     const [editingTaskId, setEditingTaskId] = useState(null);
     const [editingFolderId, setEditingFolderId] = useState(null);
     const [draftTitle, setDraftTitle] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
 
     const groupedFolders = useMemo(
-        () => groupTasksByFolder(tasks, folders, data.task_folder_relations),
-        [tasks, folders]
+        () => {
+            const grouped = groupTasksByFolder(tasks, folders, data.task_folder_relations, createTask, createFolder);
+
+            if (!searchQuery.trim()) {
+                return grouped;
+            }
+
+            const lowerQuery = searchQuery.toLowerCase();
+            return grouped
+                .map((folder) => ({
+                    ...folder,
+                    tasks: folder.tasks.filter((task) =>
+                        task.title.toLowerCase().includes(lowerQuery)
+                    ),
+                }))
+                .filter((folder) => folder.tasks.length > 0);
+        },
+        [tasks, folders, searchQuery]
     );
 
     const deleteTask = (taskId) => {
-        setTasks((currentTasks) => currentTasks.filter((task) => task.id !== taskId));
+        setTasks((currentTasks) => deleteTaskById(currentTasks, taskId));
         if (editingTaskId === taskId) {
             setEditingTaskId(null);
             setDraftTitle('');
@@ -81,31 +62,17 @@ function App() {
     };
 
     const saveTaskTitle = (taskId) => {
-        setTasks((currentTasks) =>
-            currentTasks.map((task) =>
-                task.id === taskId ? { ...task, title: draftTitle.trim() || task.title } : task
-            )
-        );
+        setTasks((currentTasks) => updateTaskTitle(currentTasks, taskId, draftTitle));
         setEditingTaskId(null);
         setDraftTitle('');
     };
 
     const saveTaskStatus = (taskId, nextStatus) => {
-        if (!TASK_STATUSES.includes(nextStatus)) {
-            return;
-        }
-
-        setTasks((currentTasks) =>
-            currentTasks.map((task) => (task.id === taskId ? { ...task, status: nextStatus } : task))
-        );
+        setTasks((currentTasks) => updateTaskStatus(currentTasks, taskId, nextStatus));
     };
 
     const saveFolderTitle = (folderId) => {
-        setFolders((currentFolders) =>
-            currentFolders.map((folder) =>
-                folder.id === folderId ? { ...folder, title: draftTitle.trim() || folder.title } : folder
-            )
-        );
+        setFolders((currentFolders) => updateFolderTitle(currentFolders, folderId, draftTitle));
         setEditingFolderId(null);
         setDraftTitle('');
     };
@@ -115,6 +82,14 @@ function App() {
             <main className="app-shell">
                 <h1>Ma to-do list</h1>
                 <p className="subtitle">version 1</p>
+
+                <input
+                    type="text"
+                    placeholder="Rechercher une tâche..."
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    className="search-input"
+                />
 
                 {groupedFolders.map((folder) => {
                     const isEditingFolder = editingFolderId === folder.id;
@@ -144,7 +119,7 @@ function App() {
                             )}
 
                             <ul className="task-list">
-                                {sortByDueDate(folder.tasks).map((task) => {
+                                {sortTasksByDueDate(folder.tasks).map((task) => {
                                     const isEditingTask = editingTaskId === task.id;
 
                                     return (
@@ -161,8 +136,7 @@ function App() {
                                                         task.title
                                                     )}
                                                 </strong>
-                                                <div className="task-meta">Statut :
-                                                    <select
+                                                <div className="task-meta">Statut : <select
                                                     value={task.status}
                                                     onChange={(event) => saveTaskStatus(task.id, event.target.value)}
                                                 >
@@ -200,4 +174,3 @@ function App() {
 }
 
 export default App;
-
