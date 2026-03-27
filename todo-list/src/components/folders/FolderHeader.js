@@ -7,6 +7,8 @@ export function FolderHeader({
     onDraftChange,
     onStartEdit,
     onSaveEdit,
+    onCreateTask = null,
+    onDeleteFolder = null,
 }) {
     return (
         <>
@@ -23,15 +25,37 @@ export function FolderHeader({
                 )}
             </h2>
 
-            {isEditing ? (
-                <button type="button" onClick={onSaveEdit} className="btn-primary">
-                    Enregistrer le dossier
-                </button>
-            ) : (
-                <button type="button" onClick={onStartEdit} className="btn-secondary">
-                    Modifier le dossier
-                </button>
-            )}
+            <div className="folder-header-actions">
+                {isEditing ? (
+                    <button type="button" onClick={onSaveEdit} className="btn-primary">
+                        Enregistrer le dossier
+                    </button>
+                ) : (
+                    <>
+                        <button type="button" onClick={onStartEdit} className="btn-secondary">
+                            Modifier le dossier
+                        </button>
+                        {onCreateTask && (
+                            <button
+                                type="button"
+                                onClick={() => onCreateTask(folder.id)}
+                                className="btn-primary"
+                            >
+                                + Créer une tâche
+                            </button>
+                        )}
+                        {onDeleteFolder && (
+                            <button
+                                type="button"
+                                onClick={() => onDeleteFolder(folder.id)}
+                                className="btn-danger"
+                            >
+                                Supprimer
+                            </button>
+                        )}
+                    </>
+                )}
+            </div>
         </>
     );
 }

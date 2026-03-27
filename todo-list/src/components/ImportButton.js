@@ -22,7 +22,7 @@ export function ImportButton({ onImport }) {
     return (
         <div className="import-button-container">
             <label htmlFor="import-file" className="btn-secondary">
-                📥 Importer JSON
+                Importer JSON
             </label>
             <input
                 id="import-file"

@@ -4,6 +4,8 @@
     font-family: Arial, sans-serif;
     color: #1f2937;
     padding: 24px;
+    background-color: #fafafa;
+    min-height: 100vh;
 }
 
 .app-shell {
@@ -14,6 +16,7 @@
 .subtitle {
     margin-top: 0;
     color: #6b7280;
+    font-size: 0.95rem;
 }
 
 .folder-card {
@@ -22,6 +25,7 @@
     padding: 16px;
     margin-bottom: 16px;
     background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .task-list {
@@ -37,6 +41,38 @@
 
 .task-item:first-child {
     border-top: 0;
+}
+
+.task-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.task-toggle-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: #6b7280;
+    transition: color 0.2s ease;
+}
+
+.task-toggle-btn:hover {
+    color: #1f2937;
+}
+
+.task-chevron {
+    display: inline-block;
+    font-size: 0.75rem;
+    transition: transform 0.2s ease;
+}
+
+.task-chevron.expanded {
+    transform: rotate(90deg);
 }
 
 .task-meta {
@@ -73,6 +109,22 @@
     min-width: 200px;
 }
 
+.sort-select {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: white;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.sort-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 .import-button-container label {
     display: inline-block;
     padding: 8px 12px;
@@ -89,16 +141,18 @@ button {
     border-radius: 6px;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .btn-primary {
     background-color: #3b82f6;
     color: white;
+    box-shadow: 0 1px 2px rgba(59, 130, 246, 0.2);
 }
 
 .btn-primary:hover {
     background-color: #2563eb;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
 .btn-secondary {
@@ -113,10 +167,12 @@ button {
 .btn-danger {
     background-color: #ef4444;
     color: white;
+    box-shadow: 0 1px 2px rgba(239, 68, 68, 0.2);
 }
 
 .btn-danger:hover {
     background-color: #dc2626;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
 }
 
 /* Task actions */
@@ -140,6 +196,7 @@ input[type="text"] {
     border: 1px solid #d1d5db;
     border-radius: 4px;
     font-size: 0.95rem;
+    transition: border-color 0.15s ease;
 }
 
 input[type="text"]:focus {
@@ -147,3 +204,310 @@ input[type="text"]:focus {
     border-color: #3b82f6;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
+
+input[type="date"] {
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    transition: border-color 0.15s ease;
+}
+
+input[type="date"]:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.task-date-input {
+    margin-left: 8px;
+}
+
+/* Navigation Tabs */
+.nav-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.tab-button {
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.tab-button.active {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+}
+
+.tab-button:hover {
+    color: #1f2937;
+}
+
+/* Folders View */
+.folders-view {
+    margin-top: 20px;
+}
+
+.folders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.folder-item {
+    display: flex;
+}
+
+.folder-card {
+    flex: 1;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    background: #fff;
+    position: relative;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.folder-card:hover {
+    border-color: #bfdbfe;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.08);
+}
+
+h1 {
+    margin-bottom: 4px;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.folder-title {
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+    color: #1f2937;
+    font-weight: 500;
+}
+
+.edit-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 6px 10px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: background 0.2s ease;
+}
+
+.edit-btn:hover {
+    background: #d1d5db;
+}
+
+.folder-edit {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.folder-input {
+    padding: 8px 10px;
+    border: 1px solid #3b82f6;
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+
+.folder-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.save-btn,
+.cancel-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.save-btn {
+    background: #10b981;
+    color: white;
+}
+
+.save-btn:hover {
+    background: #059669;
+}
+
+.cancel-btn {
+    background: #ef4444;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background: #dc2626;
+}
+
+.no-results {
+    text-align: center;
+    color: #6b7280;
+    font-size: 1.1rem;
+    padding: 40px 20px;
+}
+
+/* Folder details view */
+.folder-details {
+    width: 100%;
+}
+
+.folder-details > .btn-secondary {
+    margin-bottom: 20px;
+}
+
+.folder-task-count {
+    margin: 8px 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.folder-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.folder-actions button {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+}
+
+/* Teammates Management */
+.task-teammates {
+    margin-top: 12px;
+    padding: 12px;
+    background-color: #f3f4f6;
+    border-radius: 4px;
+}
+
+.teammates-header {
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    color: #1f2937;
+}
+
+.teammates-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.teammate-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    color: #1e40af;
+    box-shadow: 0 1px 2px rgba(30, 64, 175, 0.08);
+}
+
+.teammate-name {
+    font-weight: 500;
+}
+
+.teammate-remove-btn {
+    background: none;
+    border: none;
+    color: #1e40af;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.teammate-remove-btn:hover {
+    color: #dc2626;
+}
+
+.no-teammates {
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-style: italic;
+    margin-bottom: 12px;
+}
+
+.teammate-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.teammate-form input {
+    flex: 1;
+    min-width: 150px;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.teammate-form input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.teammate-save,
+.teammate-cancel {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+}
+
+.teammate-add-btn {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+}
+
+.folder-header-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.task-folder-select {
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    background-color: #fff;
+}
+
+.task-folder-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
